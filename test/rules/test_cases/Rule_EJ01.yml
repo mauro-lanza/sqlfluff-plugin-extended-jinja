@@ -1,0 +1,165 @@
+rule: EJ01
+
+configs:
+  core:
+    templater: jinja
+
+# --- PASSING CASES ---
+
+single_block_tag_on_own_line:
+  pass_str: |
+    select *
+    from foo
+    where 1 = 1
+    {% if true %}
+    and x > 1
+    {% endif %}
+
+nested_blocks_on_own_lines:
+  pass_str: |
+    select *
+    from foo
+    where 1 = 1
+    {% if true %}
+    {% for i in [1, 2] %}
+    and x = {{ i }}
+    {% endfor %}
+    {% endif %}
+
+inline_set_ok:
+  # Inline set statements do not need splitting.
+  pass_str: |
+    {% set my_var = 42 %}
+    select {{ my_var }} from foo
+
+do_statement_inline:
+  # do statements are non-block (inline), should not be split.
+  pass_str: |
+    {% set items = [] %}
+    {% do items.append(1) %}
+    select 1
+
+whitespace_control_on_own_line:
+  # Tags with whitespace control modifiers already on own lines.
+  pass_str: |
+    {% set x = 1 %}
+    select *
+    from foo
+    where 1 = 1
+    {%- if true %}
+      and x > 1
+    {% endif -%}
+
+block_form_set_on_own_lines:
+  # Block-form set (no =) is treated as an opener, already split.
+  pass_str: |
+    {% set my_cte %}
+    select 1 as id
+    {% endset %}
+
+macro_definition_on_own_lines:
+  pass_str: |
+    {% macro my_macro(arg1, arg2) %}
+      select {{ arg1 }}, {{ arg2 }}
+    {% endmacro %}
+
+# --- FAILING CASES ---
+
+block_tag_with_sql_on_same_line:
+  fail_str: |
+    select *
+    from foo
+    where 1 = 1 {% if true %} and x > 1 {% endif %}
+  fix_str: |
+    select *
+    from foo
+    where 1 = 1
+    {% if true %}
+      and x > 1
+    {% endif %}
+
+multiple_block_tags_on_one_line:
+  fail_str: |
+    select * from foo {% if true %} where x = 1 {% else %} where x = 2 {% endif %}
+  fix_str: |
+    select * from foo
+    {% if true %}
+      where x = 1
+    {% else %}
+      where x = 2
+    {% endif %}
+
+whitespace_control_inline:
+  fail_str: |
+    select * {%- if true -%} , extra_col {%- endif -%}
+  fix_str: |
+    select *
+    {%- if true -%}
+      , extra_col
+    {%- endif -%}
+
+block_form_set_inline:
+  fail_str: |
+    {% set my_cte %} select 1 as id {% endset %}
+  fix_str: |
+    {% set my_cte %}
+      select 1 as id
+    {% endset %}
+
+# --- Ref case 16: Adjacent tags with no whitespace ---
+adjacent_tags_no_space:
+  # Block tags immediately next to each other (no whitespace between).
+  fail_str: |
+    {% if true %}{% if true %}
+    select 1
+    {% endif %}{% endif %}
+  fix_str: |
+    {% if true %}
+      {% if true %}
+    select 1
+    {% endif %}
+    {% endif %}
+
+# --- Ref case 17: Empty block, adjacent open+close ---
+empty_block_adjacent:
+  # Empty block where open and close are on the same line.
+  fail_str: |
+    {% if false %}{% endif %}
+    select 1
+  fix_str: |
+    {% if false %}
+      {% endif %}
+    select 1
+
+# --- Ref case 14: SQL-block-SQL mixed line ---
+sql_block_sql_mixed:
+  # Block tag sandwiched between SQL content.
+  fail_str: |
+    {% set flag = true %}
+    select col_a, col_b {% if flag %} , col_c {% endif %} from my_table
+  fix_str: |
+    {% set flag = true %}
+    select col_a, col_b
+    {% if flag %}
+      , col_c
+    {% endif %}
+    from my_table
+
+# --- Ref case 40: Deeply nested blocks already on own lines ---
+deeply_nested_pass:
+  pass_str: |
+    {% if true %}
+    {% if true %}
+    {% if true %}
+    select 1
+    {% endif %}
+    {% endif %}
+    {% endif %}
+
+# --- Ref case 47: raw block content not touched ---
+raw_block_pass:
+  # Content inside {% raw %} blocks must not trigger the rule.
+  pass_str: |
+    {% raw %}
+    select 1
+    {% endraw %}

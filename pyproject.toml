@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sqlfluff-plugin-jinja"
+version = "0.1.0"
+description = "SQLFluff plugin with Jinja formatting rules: block tags on own lines and Black-based expression formatting."
+requires-python = ">=3.10"
+license = "Apache-2.0"
+readme = "README.md"
+authors = [
+    { name = "mauro-lanza" },
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Quality Assurance",
+    "Framework :: SQLFluff",
+]
+dependencies = [
+    "sqlfluff>=3.1.0",
+]
+
+[project.optional-dependencies]
+jinjafmt = ["black>=23.0"]
+dev = [
+    "black>=23.0",
+    "pytest>=7.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/mauro-lanza/sqlfluff-plugin-jinja"
+Repository = "https://github.com/mauro-lanza/sqlfluff-plugin-jinja"
+Issues = "https://github.com/mauro-lanza/sqlfluff-plugin-jinja/issues"
+
+[project.entry-points.sqlfluff]
+sqlfluff_jinja = "sqlfluff_plugin_jinja"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+sqlfluff_plugin_jinja = ["plugin_default_config.cfg"]
+
+[tool.pytest.ini_options]
+testpaths = ["test"]

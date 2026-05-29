@@ -1,0 +1,114 @@
+rule: EJ02
+
+configs:
+  core:
+    templater: jinja
+  rules:
+    extended_jinja.content_format:
+      jinja_black_enabled: true
+      jinja_indent_size: 2
+      jinja_line_length: 120
+
+# --- PASSING CASES ---
+
+already_formatted_statement:
+  pass_str: |
+    {% set x = 1 %}
+    select {{ x }} from foo
+
+short_ref_stays_inline:
+  pass_str: |
+    select *
+    from {{ ref("stg_orders") }}
+
+short_source_stays_inline:
+  pass_str: |
+    select *
+    from {{ source("ecom", "raw_orders") }}
+
+already_formatted_multiline_config:
+  pass_str: |
+    {{
+      config(
+          materialized="incremental",
+          unique_key="order_id",
+      )
+    }}
+    select 1
+
+comment_not_touched:
+  # Jinja comments should never be reformatted.
+  pass_str: |
+    {# This is a Jinja comment and should remain exactly as-is #}
+    select 1
+
+short_set_stays_inline:
+  pass_str: |
+    {% set target_date = "2023-01-01" %}
+    select 1
+
+# --- FAILING CASES ---
+
+long_config_needs_expansion:
+  fail_str: |
+    {{ config(materialized="incremental", unique_key="order_id", partition_by={"field": "order_date", "data_type": "date"}, cluster_by=["user_id", "order_date"]) }}
+    select 1
+  fix_str: |
+    {{
+      config(
+          materialized="incremental",
+          unique_key="order_id",
+          partition_by={"field": "order_date", "data_type": "date"},
+          cluster_by=["user_id", "order_date"],
+      )
+    }}
+    select 1
+
+# --- Ref case 2: Badly indented multiline config (normalization) ---
+badly_indented_multiline_config:
+  # Existing multiline config with inconsistent indentation should be
+  # collapsed to single line when it fits within line_length.
+  fail_str: "{{       config(\n            materialized=\"table\",\n       unique_key=\"id\",\n              partition_by={\"field\": \"date\",\n     \"data_type\": \"date\"}\n  )\n}}\nselect 1\n"
+  fix_str: |
+    {{ config(materialized="table", unique_key="id", partition_by={"field": "date", "data_type": "date"}) }}
+    select 1
+
+# --- Ref case 4: Long set with list (expansion) ---
+long_set_list_expansion:
+  fail_str: |
+    {% set long_list = ["item_one", "item_two", "item_three", "item_four", "item_five", "item_six", "item_seven", "item_eight", "item_nine", "item_ten"] %}
+    select 1
+  fix_str: |
+    {% set long_list = [
+          "item_one",
+          "item_two",
+          "item_three",
+          "item_four",
+          "item_five",
+          "item_six",
+          "item_seven",
+          "item_eight",
+          "item_nine",
+          "item_ten",
+    ] %}
+    select 1
+
+# --- Ref case 24: String literal containing %} (scanner robustness) ---
+string_with_close_tag_inside:
+  # The scanner must not terminate the tag at %} inside a string literal.
+  pass_str: |
+    {% set pattern = "match %} this" %}
+    select 1
+
+# --- Ref case 50: Tilde expression stays inline ---
+tilde_expression_inline:
+  # Short tilde (concatenation) expression should not be reformatted.
+  pass_str: |
+    {% set x = "hello" ~ " " ~ "world" %}
+    select 1
+
+# --- Ref case 4: Short set with whitespace trimming stays inline ---
+short_set_whitespace_control:
+  pass_str: |
+    {%- set target_date = "2023-01-01" -%}
+    select 1
