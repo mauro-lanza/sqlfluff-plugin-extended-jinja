@@ -40,13 +40,13 @@ Repository = "https://github.com/mauro-lanza/sqlfluff-plugin-extended-jinja"
 Issues = "https://github.com/mauro-lanza/sqlfluff-plugin-extended-jinja/issues"
 
 [project.entry-points.sqlfluff]
-sqlfluff_extended_jinja = "sqlfluff_plugin_jinja"
+sqlfluff_plugin_extended_jinja = "sqlfluff_plugin_extended_jinja"
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.setuptools.package-data]
-sqlfluff_plugin_jinja = ["plugin_default_config.cfg"]
+sqlfluff_plugin_extended_jinja = ["plugin_default_config.cfg"]
 
 [tool.pytest.ini_options]
 testpaths = ["test"]

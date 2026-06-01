@@ -62,8 +62,8 @@ class Rule_EJ02(BaseRule):
     def _eval(self, context: RuleContext) -> list[LintResult]:
         """Format Python inside every Jinja tag in the source."""
         # Import here to avoid circular / early-import issues.
-        from sqlfluff_plugin_jinja._black_wrapper import BlackWrapper
-        from sqlfluff_plugin_jinja._jinja_common import (
+        from sqlfluff_plugin_extended_jinja._black_wrapper import BlackWrapper
+        from sqlfluff_plugin_extended_jinja._jinja_common import (
             JinjaTag,
             find_raw_at_src_idx,
             iter_jinja_tags,

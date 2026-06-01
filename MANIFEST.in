@@ -1,1 +1,1 @@
-include src/sqlfluff_plugin_jinja/plugin_default_config.cfg
+include src/sqlfluff_plugin_extended_jinja/plugin_default_config.cfg

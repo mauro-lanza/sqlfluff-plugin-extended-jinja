@@ -53,7 +53,7 @@ class Rule_EJ01(BaseRule):
 
     def _eval(self, context: RuleContext) -> list[LintResult]:
         """Find block tags that share a line with other content."""
-        from sqlfluff_plugin_jinja._jinja_common import (
+        from sqlfluff_plugin_extended_jinja._jinja_common import (
             JinjaTag,
             find_raw_at_src_idx,
         )

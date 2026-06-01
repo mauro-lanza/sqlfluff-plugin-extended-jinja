@@ -21,8 +21,8 @@ def get_rules() -> list[type[BaseRule]]:
     Rules are imported lazily so that all ``get_configs_info()`` hooks
     have already run before the ``BaseRule`` metaclass validates config.
     """
-    from sqlfluff_plugin_jinja.rules.EJ01 import Rule_EJ01
-    from sqlfluff_plugin_jinja.rules.EJ02 import Rule_EJ02
+    from sqlfluff_plugin_extended_jinja.rules.EJ01 import Rule_EJ01
+    from sqlfluff_plugin_extended_jinja.rules.EJ02 import Rule_EJ02
 
     return [Rule_EJ01, Rule_EJ02]
 
@@ -31,7 +31,7 @@ def get_rules() -> list[type[BaseRule]]:
 def load_default_config() -> dict[str, Any]:
     """Load the default configuration for the plugin."""
     return load_config_resource(
-        package="sqlfluff_plugin_jinja",
+        package="sqlfluff_plugin_extended_jinja",
         file_name="plugin_default_config.cfg",
     )
 

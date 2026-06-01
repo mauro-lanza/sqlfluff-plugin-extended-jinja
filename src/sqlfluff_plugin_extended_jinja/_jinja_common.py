@@ -1,7 +1,4 @@
 """Shared Jinja tag scanning, parsing, and formatting utilities.
-
-Extracted from ``scripts/format_jinja_blocks.py`` for reuse across
-SQLFluff plugin rules.
 """
 
 from __future__ import annotations
@@ -14,7 +11,7 @@ from typing import TYPE_CHECKING, Iterator
 from sqlfluff.core.parser.segments import BaseSegment
 
 if TYPE_CHECKING:
-    from sqlfluff_plugin_jinja._black_wrapper import BlackWrapper
+    from sqlfluff_plugin_extended_jinja._black_wrapper import BlackWrapper
 
 # ---------------------------------------------------------------------------
 # Keyword tables
