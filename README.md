@@ -1,4 +1,4 @@
-# sqlfluff-plugin-jinja
+# sqlfluff-plugin-extended-jinja
 
 SQLFluff plugin that adds extended Jinja formatting rules. Ensures block-level tags are isolated on their own lines and formats Python expressions inside Jinja tags using Black.
 
@@ -12,13 +12,13 @@ Uses the `EJ` (Extended Jinja) prefix to avoid conflicts with SQLFluff's built-i
 ## Installation
 
 ```bash
-pip install sqlfluff-plugin-jinja
+pip install sqlfluff-plugin-extended-jinja
 ```
 
 For Black-based formatting (EJ02):
 
 ```bash
-pip install "sqlfluff-plugin-jinja[jinjafmt]"
+pip install "sqlfluff-plugin-extended-jinja[jinjafmt]"
 ```
 
 ## Usage
@@ -105,7 +105,7 @@ Requires the `black` package. When Black is unavailable, the rule is silently sk
   hooks:
     - id: sqlfluff-fix
       additional_dependencies:
-        - sqlfluff-plugin-jinja[jinjafmt]
+        - sqlfluff-plugin-extended-jinja[jinjafmt]
 ```
 
 ## Development

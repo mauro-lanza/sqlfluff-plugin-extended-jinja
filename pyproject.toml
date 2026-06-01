@@ -3,7 +3,7 @@ requires = ["setuptools>=68.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "sqlfluff-plugin-jinja"
+name = "sqlfluff-plugin-extended-jinja"
 version = "0.1.0"
 description = "SQLFluff plugin with Jinja formatting rules: block tags on own lines and Black-based expression formatting."
 requires-python = ">=3.10"
@@ -35,12 +35,12 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/mauro-lanza/sqlfluff-plugin-jinja"
-Repository = "https://github.com/mauro-lanza/sqlfluff-plugin-jinja"
-Issues = "https://github.com/mauro-lanza/sqlfluff-plugin-jinja/issues"
+Homepage = "https://github.com/mauro-lanza/sqlfluff-plugin-extended-jinja"
+Repository = "https://github.com/mauro-lanza/sqlfluff-plugin-extended-jinja"
+Issues = "https://github.com/mauro-lanza/sqlfluff-plugin-extended-jinja/issues"
 
 [project.entry-points.sqlfluff]
-sqlfluff_jinja = "sqlfluff_plugin_jinja"
+sqlfluff_extended_jinja = "sqlfluff_plugin_jinja"
 
 [tool.setuptools.packages.find]
 where = ["src"]
