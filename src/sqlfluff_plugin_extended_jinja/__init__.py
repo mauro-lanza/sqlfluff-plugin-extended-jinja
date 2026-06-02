@@ -37,20 +37,16 @@ def load_default_config() -> dict[str, Any]:
 
 
 @hookimpl
-def get_configs_info() -> dict[str, dict[str, ConfigInfo]]:
+def get_configs_info() -> dict[str, ConfigInfo]:
     """Get rule config validations and descriptions."""
     return {
         "jinja_indent_size": {
             "definition": "Spaces per indent level inside Jinja blocks (default: 2)",
         },
         "jinja_line_length": {
-            "definition": (
-                "Max line length for Jinja content formatting (default: 120)"
-            ),
+            "definition": "Max line length for Jinja content formatting (default: 120)",
         },
         "jinja_black_enabled": {
-            "definition": (
-                "Enable Black-based formatting of Jinja tag content (default: True)"
-            ),
+            "definition": "Enable Black-based formatting of Jinja tag content (default: True)",
         },
     }

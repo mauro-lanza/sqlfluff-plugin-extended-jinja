@@ -1,12 +1,12 @@
-"""Shared Jinja tag scanning, parsing, and formatting utilities.
-"""
+"""Shared Jinja tag scanning, parsing, and formatting utilities."""
 
 from __future__ import annotations
 
 import ast
 import re
+from collections.abc import Iterator
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Iterator
+from typing import TYPE_CHECKING
 
 from sqlfluff.core.parser.segments import BaseSegment
 
@@ -153,7 +153,7 @@ def iter_jinja_tags(source: str) -> Iterator[tuple[int, int, str]]:
 # ---------------------------------------------------------------------------
 
 
-@dataclass
+@dataclass(frozen=True)
 class JinjaTag:
     """Parsed Jinja tag: ``{opener}{verb}{code}{closer}``.
 
@@ -167,7 +167,7 @@ class JinjaTag:
     closer: str
 
     @classmethod
-    def from_text(cls, text: str) -> "JinjaTag":
+    def from_text(cls, text: str) -> JinjaTag:
         op_len = 3 if len(text) > 2 and text[2] in "-+" else 2
         cl_len = 3 if len(text) > 2 and text[-3] in "-+" else 2
         opener = text[:op_len]
@@ -197,22 +197,24 @@ class JinjaTag:
             return "open"
         return KEYWORD_ROLES.get(self.verb)
 
-    def render_single_line(self) -> str:
-        if self.verb and self.code:
-            return f"{self.opener} {self.verb} {self.code} {self.closer}"
+    def render_single_line(self, code: str | None = None) -> str:
+        code = self.code if code is None else code
+        if self.verb and code:
+            return f"{self.opener} {self.verb} {code} {self.closer}"
         if self.verb:
             return f"{self.opener} {self.verb} {self.closer}"
-        return f"{self.opener} {self.code} {self.closer}"
+        return f"{self.opener} {code} {self.closer}"
 
     def render_multiline(
         self,
+        code: str,
         base_indent: str,
         indent_size: int,
         no_indent_lines: frozenset[int],
     ) -> str:
         """Render a multi-line ``code`` body with proper indentation."""
         pad = " " * indent_size
-        lines = self.code.splitlines()
+        lines = code.splitlines()
         head = f"{self.opener} {self.verb} {lines[0]}" if self.verb else self.opener
         body_start = 1 if self.verb else 0
         body: list[str] = []
@@ -225,7 +227,7 @@ class JinjaTag:
                 body.append(f"{base_indent}{pad}{ln}")
         if self.verb:
             if not body:
-                return self.render_single_line()
+                return self.render_single_line(code)
             tail = f"{base_indent}{body.pop().lstrip()} {self.closer}"
         else:
             tail = f"{base_indent}{self.closer}"
@@ -233,36 +235,26 @@ class JinjaTag:
 
     def format(
         self,
-        wrapper: "BlackWrapper",
+        wrapper: BlackWrapper,
         max_line_length: int,
         base_indent: str,
         indent_size: int,
     ) -> str | None:
-        """Return formatted tag text, or ``None`` if nothing should change.
-
-        .. note:: Mutates ``self.code`` as a side effect.  Each ``JinjaTag``
-           instance should only be formatted once.
-        """
+        """Return formatted tag text, or ``None`` if nothing should change."""
         if not self.code:
             return None
 
         original_code = self.code
         # Remove only the outer call trailing comma in macro-like defs so
         # Black's "magic trailing comma" doesn't force an unwanted split.
-        code = (
-            _strip_outer_call_trailing_comma(original_code)
-            if self.is_macro_def
-            else original_code
-        )
+        code = _strip_outer_call_trailing_comma(original_code) if self.is_macro_def else original_code
 
         # Width budget: tighter of single-line and multi-line overheads.
         single_overhead = len(self.opener) + len(self.closer) + 2
         if self.verb:
             single_overhead += len(self.verb) + 1
         multi_overhead = indent_size
-        max_code = (
-            max_line_length - len(base_indent) - max(single_overhead, multi_overhead)
-        )
+        max_code = max_line_length - len(base_indent) - max(single_overhead, multi_overhead)
 
         formatted = wrapper.format_string(code, max_code)
 
@@ -270,17 +262,15 @@ class JinjaTag:
             formatted = _strip_outer_call_trailing_comma(formatted)
 
         # Black turns "" / '' into triple-quoted strings, which break Jinja.
-        if ('"""' in formatted and '"""' not in original_code) or (
-            "'''" in formatted and "'''" not in original_code
-        ):
+        if ('"""' in formatted and '"""' not in original_code) or ("'''" in formatted and "'''" not in original_code):
             return None
         if formatted == original_code:
             return None
 
-        self.code = formatted
         if "\n" not in formatted:
-            return self.render_single_line()
+            return self.render_single_line(formatted)
         return self.render_multiline(
+            formatted,
             base_indent,
             indent_size,
             _triple_quoted_string_lines(formatted),
@@ -309,14 +299,8 @@ def _triple_quoted_string_lines(code: str) -> frozenset[int]:
             and "\n" in node.value
             and node.lineno - 1 < len(raw_lines)
             and node.end_lineno - 1 < len(raw_lines)
-            and (
-                '"""' in raw_lines[node.lineno - 1]
-                or "'''" in raw_lines[node.lineno - 1]
-            )
-            and (
-                '"""' in raw_lines[node.end_lineno - 1]
-                or "'''" in raw_lines[node.end_lineno - 1]
-            )
+            and ('"""' in raw_lines[node.lineno - 1] or "'''" in raw_lines[node.lineno - 1])
+            and ('"""' in raw_lines[node.end_lineno - 1] or "'''" in raw_lines[node.end_lineno - 1])
         ):
             out.update(range(node.lineno, node.end_lineno))
     return frozenset(out)
@@ -374,9 +358,7 @@ def _strip_outer_call_trailing_comma(code: str) -> str:
     return code[:comma_idx] + code[comma_idx + 1 :]
 
 
-def find_raw_at_src_idx(
-    segment: BaseSegment, src_idx: int
-) -> BaseSegment | None:
+def find_raw_at_src_idx(segment: BaseSegment, src_idx: int) -> BaseSegment | None:
     """Recursively search to find a raw segment for a position in the source.
 
     Returns ``None`` if no matching segment is found.

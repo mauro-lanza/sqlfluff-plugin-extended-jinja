@@ -82,7 +82,7 @@ class Rule_EJ01(BaseRule):
 
         results: list[LintResult] = []
 
-        for idx, rs in enumerate(raw_sliced):
+        for rs in raw_sliced:
             if rs.slice_type not in block_types:
                 continue
 
@@ -127,6 +127,7 @@ class Rule_EJ01(BaseRule):
 
                 raw_seg = find_raw_at_src_idx(context.segment, ws_start)
                 if raw_seg is not None and not raw_seg.source_fixes:
+                    assert raw_seg.pos_marker is not None
                     source_fixes = [
                         SourceFix(
                             replacement,
@@ -137,10 +138,7 @@ class Rule_EJ01(BaseRule):
                     results.append(
                         LintResult(
                             anchor=raw_seg,
-                            description=(
-                                f"Jinja block tag '{tag.verb}' should start "
-                                "on its own line."
-                            ),
+                            description=(f"Jinja block tag '{tag.verb}' should start on its own line."),
                             fixes=[
                                 LintFix.replace(
                                     raw_seg,
@@ -165,10 +163,9 @@ class Rule_EJ01(BaseRule):
 
                 replacement = "\n" + after_indent
 
-                raw_seg = find_raw_at_src_idx(
-                    context.segment, ws_start_after
-                )
+                raw_seg = find_raw_at_src_idx(context.segment, ws_start_after)
                 if raw_seg is not None and not raw_seg.source_fixes:
+                    assert raw_seg.pos_marker is not None
                     source_fixes = [
                         SourceFix(
                             replacement,
@@ -179,10 +176,7 @@ class Rule_EJ01(BaseRule):
                     results.append(
                         LintResult(
                             anchor=raw_seg,
-                            description=(
-                                f"Content after Jinja block tag '{tag.verb}' "
-                                "should start on a new line."
-                            ),
+                            description=(f"Content after Jinja block tag '{tag.verb}' should start on a new line."),
                             fixes=[
                                 LintFix.replace(
                                     raw_seg,

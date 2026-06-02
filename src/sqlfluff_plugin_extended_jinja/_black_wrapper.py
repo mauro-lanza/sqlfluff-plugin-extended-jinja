@@ -13,7 +13,7 @@ from types import ModuleType
 
 
 class BlackWrapper:
-    """Format Python expressions using Black, with Jinja-specific pre/post processing."""
+    """Format Python expressions with Black, plus Jinja-specific pre/post processing."""
 
     # Sentinel template for Python reserved words used as Jinja identifiers.
     _KW_SENTINEL = "__jfmt_kw_{}__"

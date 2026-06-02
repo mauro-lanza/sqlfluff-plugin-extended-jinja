@@ -24,7 +24,7 @@ classifiers = [
     "Framework :: SQLFluff",
 ]
 dependencies = [
-    "sqlfluff>=3.1.0",
+    "sqlfluff>=4.0",
 ]
 
 [project.optional-dependencies]
@@ -32,6 +32,9 @@ jinjafmt = ["black>=23.0"]
 dev = [
     "black>=23.0",
     "pytest>=7.0",
+    "ruff>=0.6",
+    "mypy>=1.10",
+    "pre-commit>=3.5",
 ]
 
 [project.urls]
@@ -50,3 +53,17 @@ sqlfluff_plugin_extended_jinja = ["plugin_default_config.cfg"]
 
 [tool.pytest.ini_options]
 testpaths = ["test"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+src = ["src", "test"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.mypy]
+python_version = "3.10"
+files = ["src"]
+ignore_missing_imports = true
+warn_unused_ignores = false

@@ -95,9 +95,7 @@ class Rule_EJ02(BaseRule):
         line_length = int(self.jinja_line_length)  # type: ignore[attr-defined]
 
         # Collect formattable tag spans (skip raws and comments).
-        spans = [
-            (s, e) for s, e, k in iter_jinja_tags(source) if k in ("stmt", "expr")
-        ]
+        spans = [(s, e) for s, e, k in iter_jinja_tags(source) if k in ("stmt", "expr")]
 
         results: list[LintResult] = []
         for start, end in spans:
@@ -120,6 +118,7 @@ class Rule_EJ02(BaseRule):
                 continue
             if raw_seg.source_fixes:
                 continue
+            assert raw_seg.pos_marker is not None
 
             source_fixes = [
                 SourceFix(
@@ -137,9 +136,7 @@ class Rule_EJ02(BaseRule):
             results.append(
                 LintResult(
                     anchor=raw_seg,
-                    description=(
-                        f"Jinja tag content should be formatted: {preview}"
-                    ),
+                    description=(f"Jinja tag content should be formatted: {preview}"),
                     fixes=[
                         LintFix.replace(
                             raw_seg,
